@@ -1,11 +1,41 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Button, FlatList } from 'react-native';
+import * as Contacts from 'expo-contacts';
 
 export default function App() {
+  const [contacts, setContacts] = useState([]);
+
+  const getContacts = async () => {
+    const { status } = await Contacts.requestPermissionsAsync();
+    if (status === 'granted') {
+      const { data } = await Contacts.getContactsAsync({
+        fields: [Contacts.Fields.PhoneNumbers],
+      });
+
+      if (data.length > 0) {
+      setContacts(data);
+      }
+    }
+  }
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <FlatList 
+        style={{marginTop: 40}}
+        data={contacts}
+        renderItem={({ item }) =>
+        <View style={{flexDirection: "row"}}>
+          <Text style={{fontSize: 16}}>{item.name}</Text>
+          {
+            item.phoneNumbers ?
+            <Text>{item.phoneNumbers[0].number}</Text> :
+            <Text>No number available</Text>
+          }
+        </View>
+        }
+        keyExtractor={(item, index) => index.toString()}
+      />
+      <Button title="Get Contacts" onPress={getContacts} />
     </View>
   );
 }
